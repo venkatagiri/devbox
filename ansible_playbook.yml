@@ -1,0 +1,44 @@
+---
+- hosts: 127.0.0.1
+  connection: local
+  tasks:
+    - name: copy the bash_profile
+      copy: src=/vagrant/bash_profile dest=/home/vagrant/.bash_profile
+
+    - name: ensure nginx is installed
+      apt: pkg=nginx state=installed
+      notify:
+        - copy conf files for sites
+        - replace sendfile
+        - start nginx
+
+    - name: add nodejs repository
+      apt_repository: repo='ppa:chris-lea/node.js' state=present
+
+    - name: ensure nodejs is installed
+      apt: pkg=nodejs state=installed update_cache=yes
+
+    - name: ensure these packages are installed
+      apt: name={{item}} state=installed
+      with_items:
+        - git
+        - vim
+        - curl
+        - iftop
+        - htop
+
+    - name: ensure these npm packages are installed
+      npm: name={{item}} state=present global=yes
+      with_items:
+        - nodemon
+        - forever
+
+  handlers:
+    - name: copy conf files for sites
+      copy: src=/vagrant/nginx/ dest=/etc/nginx/sites-enabled/
+
+    - name: start nginx
+      service: name=nginx state=started
+      
+    - name: replace sendfile
+      replace: dest=/etc/nginx/nginx.conf regexp='sendfile on' replace='sendfile off'
