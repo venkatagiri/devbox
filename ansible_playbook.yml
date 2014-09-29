@@ -26,6 +26,7 @@
         - curl
         - iftop
         - htop
+        - tree
 
     - name: ensure these npm packages are installed
       npm: name={{item}} state=present global=yes
